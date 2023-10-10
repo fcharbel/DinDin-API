@@ -1,6 +1,5 @@
 const bcrypt = require('bcrypt');
 const knex = require('../connection');
-const { validacaoCamposUsuarios, validacaoCamposLogin } = require('../utils/validacao');
 const jwt = require('jsonwebtoken');
 const jwtPass = require('../jwtPass');
 
@@ -9,14 +8,9 @@ const createUser = async (req, res) => {
 
     try {
 
-        if (!validacaoCamposUsuarios(name, email, password)) {
-            return res.status(400).json({ mensagem: `Todos os campo são obrigatório.` });
-        }
+        const userExist = await knex('usuarios').where({ email }).first();
 
-        const userExist = await knex('usuarios').where({ email });
-        console.log(userExist);
-
-        if ((userExist.length > 0)) {
+        if ((userExist)) {
             return res.status(400).json({ mensagem: 'Já existe usuário cadastrado com o e-mail informado.' });
         }
 
@@ -30,14 +24,11 @@ const createUser = async (req, res) => {
             })
             .returning('*');
 
-        console.log(newUser);
-
         const { senha: _, ...user } = newUser[0];
 
         return res.status(201).json(user);
 
     } catch (error) {
-        console.log(error);
         return res.status(500).json({ mensagem: error.message });
     }
 }
@@ -46,11 +37,6 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     try {
-
-        if (!validacaoCamposLogin(email, password)) {
-            return res.status(400).json({ mensagem: 'Todos os campo são obrigatório.' });
-        }
-
         const userExist = await knex('usuarios').where({ email }).first();
 
         if (!userExist) {
@@ -94,10 +80,6 @@ const updateUser = async (req, res) => {
     const { id } = req.user;
 
     try {
-        if (!validacaoCamposUsuarios(name, email, password)) {
-            return res.status(400).json({ mensagem: `Todos os campo são obrigatório.` });
-        }
-
         const encryptedPass = await bcrypt.hash(password, 10);
 
         const userExist = await knex('usuarios')
