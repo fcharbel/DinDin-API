@@ -3,15 +3,18 @@ const { createUser, login, detailUser, updateUser } = require("./controllers/use
 const authenticatedUser = require("./middlewares/authentication");
 const validateReqBody = require("./middlewares/validateReqBody");
 const userSchema = require("./validations/userSchema");
+const getCategories = require("./controllers/categoryController");
 
 const routes = express();
 
-routes.post('/user', validateReqBody(userSchema), createUser);
+routes.post('/usuario', validateReqBody(userSchema), createUser);
 routes.post('/login', login);
 
 routes.use(authenticatedUser);
 
-routes.get('/user', detailUser);
-routes.put('/user', updateUser);
+routes.get('/usuario', detailUser);
+routes.put('/usuario', updateUser);
+
+routes.get('/categoria', getCategories);
 
 module.exports = routes;
