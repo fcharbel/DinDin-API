@@ -120,10 +120,61 @@ const updateTransaction = async (req, res) => {
             .where('id', id)
             .returning('*')
 
-        if (!updatedTransaction) {
+        if (updatedTransaction.length === 0) {
             return res.status(400).json({ mensagem: 'Falha ao atualizar transação' })
         }
         return res.status(200).json({ mensagem: 'Transação atualizada.' })
+
+    } catch (error) {
+        return res.status(500).json({ mensagem: 'Erro do servidor' })
+    }
+}
+
+const deleteTransaction = async (req, res) => {
+    const { id } = req.params
+
+    try {
+        const transactionFound = await knex('transacoes')
+            .where({ id })
+            .andWhere('usuario_id', req.user.id)
+            .first();
+
+        if (!transactionFound) {
+            return res.status(404).json({ mensagem: 'Transação não encontrada.' })
+        }
+
+        const deletedTransaction = await knex('transacoes')
+            .del()
+            .where({ id })
+            .andWhere('usuario_id', req.user.id)
+            .returning('*')
+
+        console.log(deletedTransaction);
+
+        if (deletedTransaction.length === 0) {
+            return res.status(400).json({ mensagem: 'Falha ao deletar transação' })
+        }
+
+        return res.status(200).json({ mensagem: 'Transação deletada' })
+
+    } catch (error) {
+        return res.status(500).json({ mensagem: 'Erro do servidor' })
+    }
+}
+
+const getTransactionStatement = async (req, res) => {
+    const { id } = req.user
+
+    try {
+        getStatement = await knex('transacoes')
+            .select([
+                knex.raw('COALESCE(SUM(CASE WHEN tipo = ? THEN valor ELSE 0 END), 0)::int AS ??', ['entrada', 'entrada']),
+                knex.raw('COALESCE(SUM(CASE WHEN tipo = ? THEN valor ELSE 0 END), 0)::int AS ??', ['saida', 'saida'])
+            ])
+            .where('usuario_id', id)
+            .first();
+
+        return res.status(201).json(getStatement)
 
     } catch (error) {
         return res.status(500).json({ mensagem: 'Erro do servidor' })
@@ -134,5 +185,7 @@ module.exports = {
     getTransaction,
     detailTransaction,
     registerTransaction,
-    updateTransaction
+    updateTransaction,
+    deleteTransaction,
+    getTransactionStatement
 }
