@@ -88,8 +88,51 @@ const registerTransaction = async (req, res) => {
     }
 }
 
+const updateTransaction = async (req, res) => {
+    const { descricao, valor, categoria_id, tipo } = req.body
+    const { id } = req.params
+
+    try {
+        const transactionFound = await knex('transacoes')
+            .where({ id })
+            .andWhere('usuario_id', req.user.id)
+            .first();
+
+        if (!transactionFound) {
+            return res.status(404).json({ mensagem: 'Transação não encontrada.' })
+        }
+
+        const category = await knex('categorias')
+            .where({ id: categoria_id })
+            .first()
+
+        if (!category) {
+            return res.status(404).json({ mensagem: 'Categoria não encontrada.' })
+        }
+
+        const updatedTransaction = await knex('transacoes')
+            .update({
+                descricao,
+                valor,
+                categoria_id,
+                tipo
+            })
+            .where('id', id)
+            .returning('*')
+
+        if (!updatedTransaction) {
+            return res.status(400).json({ mensagem: 'Falha ao atualizar transação' })
+        }
+        return res.status(200).json({ mensagem: 'Transação atualizada.' })
+
+    } catch (error) {
+        return res.status(500).json({ mensagem: 'Erro do servidor' })
+    }
+}
+
 module.exports = {
     getTransaction,
     detailTransaction,
-    registerTransaction
+    registerTransaction,
+    updateTransaction
 }

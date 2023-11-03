@@ -7,7 +7,7 @@ const transactionSchema = require("./validations/transactionSchema");
 
 const getCategories = require("./controllers/categoryController");
 const { createUser, login, detailUser, updateUser } = require("./controllers/userController");
-const { getTransaction, detailTransaction, registerTransaction } = require("./controllers/transactionController");
+const { getTransaction, detailTransaction, registerTransaction, updateTransaction } = require("./controllers/transactionController");
 
 const routes = express();
 
@@ -24,6 +24,8 @@ routes.get('/categoria', getCategories);
 routes.get('/transacao', getTransaction);
 routes.get('/transacao/:id', detailTransaction);
 routes.post('/transacao', validateReqBody(transactionSchema), registerTransaction);
+routes.put('/transacao/:id', validateReqBody(transactionSchema), updateTransaction);
+
 
 
 module.exports = routes;
